@@ -1,6 +1,5 @@
-import { Controller, Get, Param, Post, Res, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Param, Post, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response as IResponse } from 'express';
 
 import { AppService } from './app.service';
 
@@ -14,11 +13,11 @@ export class AppController {
   }
 
   @Get('storage/:filename')
-  async downloadStorageFile(@Param('filename') filename: string, @Res({ passthrough: true }) response: IResponse) {
+  async downloadStorageFile(@Param('filename') filename: string) {
     const file = await this.appService.downloadStorageFile(filename);
-    response.setHeader('Content-Type', `application/csv`);
-    response.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-    return new StreamableFile(file[0]);
+    return new StreamableFile(file[0], {
+      disposition: `attachment; filename=${filename}`
+    });
   }
 
   @Post('storage')
