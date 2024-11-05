@@ -1,23 +1,15 @@
 import { BigQuery } from '@google-cloud/bigquery';
-import { Storage } from "@google-cloud/storage";
+import { Storage } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { env } from './config/env';
 import { Organization } from './interfaces';
 
 @Injectable()
 export class AppService {
-  private readonly bigquery = new BigQuery({
-    keyFilename: path.join(__dirname, '..', 'keys', env.keyFilename),
-    projectId: env.projectId,
-  });
-
-  private readonly storage = new Storage({
-    keyFilename: path.join(__dirname, '..', 'keys', env.keyFilename),
-    projectId: env.projectId,
-  });
+  private readonly bigquery = new BigQuery();
+  private readonly storage = new Storage();
 
   async getBigQueryData(): Promise<Organization[]> {
     const res = await this.bigquery.query({
@@ -29,7 +21,13 @@ export class AppService {
 
   async loadStorageFile(file: Express.Multer.File) {
     const bucket = this.storage.bucket('etraining_samples');
-    const filePath = path.join(__dirname, '..', '.temp', file.originalname);
+    const tempPath = path.join(__dirname, '..', '.temp');
+
+    if (fs.existsSync(tempPath) === false) {
+      fs.mkdirSync(tempPath, { recursive: true });
+    }
+
+    const filePath = path.join(tempPath, file.originalname);
     fs.writeFileSync(filePath, file.buffer, {
       encoding: 'utf-8',
     });
